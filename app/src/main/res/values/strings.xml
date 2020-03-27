@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PFO</string>
+    <string name="license">a0N2w0nUkUFcX3PJbjnYS3WJfcubryh8yva/BMnihBEXYa9oYEEo7xFgZ+zWif+cRvrG7c0BdN8BCAllZy+i5hUkjwmrrN4ryB1ZP+ijlNzwD2KItgTzdmepdda8kMoHTPa+8buMJM2X+UkuEhxxCLGgQ+npeqr1eX477RsOYAk=</string>
+    <string name="auth">WangunBearerToken 1772170802</string>
+    <string name="user">PNMUser1</string>
+    <integer name="width">64</integer>
+</resources>
