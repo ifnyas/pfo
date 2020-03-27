@@ -71,16 +71,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
     long start, end;
     int counter = 0;
     double fps;
-    // TODO: nothing to do, only a bookmark
-    String auth;
-    String path;
-    String username;
-    String confidence;
-    String lat;
-    String lng;
-    String from;
-    String statusText;
-    int status;
     // Number of Cameras in device.
     private int numberOfCameras;
     private Camera mCamera;
@@ -109,6 +99,19 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
     private String BUNDLE_CAMERA_ID = "camera";
     private HashMap<Integer, Integer> facesCount = new HashMap<>();
 
+    // TODO: nothing to do, only a bookmark
+    String auth;
+    String license;
+    String path;
+    String username;
+    String confidence;
+    String lat;
+    String lng;
+    String from;
+    String statusText;
+    int status;
+    int width;
+
     // onCreate
     @Override
     public void onCreate(Bundle icicle) {
@@ -125,7 +128,12 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         username = "pnmuser0"; // TODO: get value from previous activity
         lat = "6.205177"; // TODO: get value from previous activity
         lng = "106.8192758"; // TODO: get value from previous activity
+        auth = "WangunBearerToken 1772170802";
+        license = "a0N2w0nUkUFcX3PJbjnYS3WJfcubryh8yva/BMnihBEXYa9oYEEo7xFgZ+zWif+cRvrG7c0BdN8BCAllZy+i5hUkjwmrrN4ryB1ZP+ijlNzwD2KItgTzdmepdda8kMoHTPa+8buMJM2X+UkuEhxxCLGgQ+npeqr1eX477RsOYAk=";
         from = getIntent().getStringExtra("from");
+        width = 64;
+
+        // init title app bar
         if (from == null) {
             from = "Presensi";
         }
@@ -502,9 +510,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         // init API Service
         FaceApiService apiService = FaceApiClient.getClient().create(FaceApiService.class);
 
-        // init values
-        auth = getString(R.string.auth);
-
         // Post request
         apiService.getUser(auth, username).enqueue(new Callback<ResponseBody>() {
             @Override
@@ -554,7 +559,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         FaceApiService apiService = FaceApiClient.getClient().create(FaceApiService.class);
 
         // init values
-        String auth = getString(R.string.auth);
         File file = new File(path, "Daftar.jpg");
         RequestBody requestFile = RequestBody
                 .create(MediaType.parse("multipart/form-data"), file);
@@ -603,21 +607,20 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
     private void matchingFaces() {
 
         // init fsdk
-        FSDK.ActivateLibrary(getString(R.string.license));
+        FSDK.ActivateLibrary(license);
         FSDK.Initialize();
 
         // init variables
         String path = getApplicationInfo().dataDir + "/.rec";
-        int w = getResources().getInteger(R.integer.width);
 
         // get face 1
         FSDK.HImage face1 = new FSDK.HImage();
         FSDK.LoadImageFromFile(face1, path + "/Daftar.jpg");
         FSDK.FSDK_FaceTemplate faceTemp1 = new FSDK.FSDK_FaceTemplate();
         FSDK.TFacePosition facePosi1 = new FSDK.TFacePosition();
-        facePosi1.w = w;
-        facePosi1.xc = w / 2;
-        facePosi1.yc = w / 2;
+        facePosi1.w = width;
+        facePosi1.xc = width / 2;
+        facePosi1.yc = width / 2;
         FSDK.GetFaceTemplateInRegion(face1, facePosi1, faceTemp1);
 
         // get face 2
@@ -625,9 +628,9 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         FSDK.LoadImageFromFile(face2, path + "/Presensi.jpg");
         FSDK.FSDK_FaceTemplate faceTemp2 = new FSDK.FSDK_FaceTemplate();
         FSDK.TFacePosition facePosi2 = new FSDK.TFacePosition();
-        facePosi2.w = w;
-        facePosi2.xc = w / 2;
-        facePosi2.yc = w / 2;
+        facePosi2.w = width;
+        facePosi2.xc = width / 2;
+        facePosi2.yc = width / 2;
         FSDK.GetFaceTemplateInRegion(face2, facePosi2, faceTemp2);
 
         // matching
@@ -688,7 +691,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         FaceApiService apiService = FaceApiClient.getClient().create(FaceApiService.class);
 
         // init values
-        String auth = getString(R.string.auth);
         File file = new File(path, "Presensi.jpg");
         RequestBody requestFile = RequestBody
                 .create(MediaType.parse("multipart/form-data"), file);
@@ -866,9 +868,9 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
 
                                         public void run() {
 
-                                            int w = getResources().getInteger(R.integer.width);
+
                                             Bitmap resizedBitmap = Bitmap.createScaledBitmap(
-                                                    faceCroped, w, w, false);
+                                                    faceCroped, width, width, false);
                                             FaceUtils.saveImage(resizedBitmap, from, path);
 
                                             // TODO: bookmark mode
