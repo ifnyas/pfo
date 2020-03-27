@@ -208,17 +208,28 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
 
     // check if user face already in local storage
     private boolean checkLocalFace() {
-        File dir = new File(path);
-        dir.mkdirs();
         String fileName = "Daftar.jpg";
-        File file = new File(dir, fileName);
+        File file = new File(path, fileName);
         return file.exists();
     }
 
-    // init all buttons function
+    // init buttons function
     private void initBtn() {
 
         ImageButton backBtn = findViewById(R.id.backBtn);
+        ImageButton modBtn = findViewById(R.id.modBtn);
+        ImageButton delBtn = findViewById(R.id.delBtn);
+
+        // show button only if user face already in local storage
+        if (checkLocalFace()) {
+            modBtn.setVisibility(View.VISIBLE);
+            delBtn.setVisibility(View.VISIBLE);
+        } else {
+            modBtn.setVisibility(View.GONE);
+            delBtn.setVisibility(View.GONE);
+        }
+        // //
+
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -226,14 +237,17 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
             }
         });
 
-        ImageButton modBtn = findViewById(R.id.modBtn);
-        // show button only if user face already in local storage
-        if (checkLocalFace()) {
-            modBtn.setVisibility(View.VISIBLE);
-        } else {
-            modBtn.setVisibility(View.GONE);
-        }
-        // //
+        delBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                File file = new File(path, "Daftar.jpg");
+                if (file.exists()) {
+                    file.delete();
+                }
+                recreate();
+            }
+        });
+
         modBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
