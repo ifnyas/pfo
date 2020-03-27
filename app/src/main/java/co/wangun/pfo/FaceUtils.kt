@@ -73,7 +73,7 @@ object FaceUtils {
             connection.connect()
             val input = connection.inputStream
             val bmp = BitmapFactory.decodeStream(input)
-            saveImage(bmp, "register", path)
+            saveImage(bmp, "Daftar", path)
             Log.d("BmpConverter", "image saved")
         } catch (e: IOException) {
             e.printStackTrace()

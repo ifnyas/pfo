@@ -230,7 +230,7 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
             @Override
             public void onClick(final View v) {
                 Intent intent = new Intent(FaceActivity.this, FaceActivity.class);
-                intent.putExtra("from", "Perbaharui");
+                intent.putExtra("from", "Daftar");
                 startActivity(intent);
                 finish();
             }
@@ -547,7 +547,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
     /**
      * Register face
      */
-
     // TODO: bookmark register face
     private void registerFace() {
 
@@ -671,11 +670,53 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         } else {
             statusText = "FAILED";
         }
-        String msg = "username: " + username + "\nStatus: " + status + "\nLat, Lng: " + lat + ", "
-                + lng + "\nConfidence (debug): " + confidence;
+        String msg = "username: " + username + "\nStatus: " + statusText + "\nLat, Lng: " + lat +
+                ", " + lng + "\nConfidence (debug): " + confidence;
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
         Log.d("FaceActivity", path);
+
+        postResult();
     }
+
+    /**
+     * Register face
+     */
+    // TODO: Post Result Bookmark
+    private void postResult() {
+
+        // init API Service
+        FaceApiService apiService = FaceApiClient.getClient().create(FaceApiService.class);
+
+        // init values
+        String auth = getString(R.string.auth);
+        File file = new File(path, "Presensi.jpg");
+        RequestBody requestFile = RequestBody
+                .create(MediaType.parse("multipart/form-data"), file);
+        MultipartBody.Part img = MultipartBody.Part
+                .createFormData("img", file.getName(), requestFile);
+
+        // Post request
+        apiService.postResult(auth, username, lat, lng, confidence, status, img)
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if (response.isSuccessful()) {
+                            // get results
+                            try {
+                                JSONObject json = new JSONObject(response.body().string());
+                                // dance, dance
+                            } catch (JSONException | IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    }
+                });
+    }
+
 
     /**
      * Do face detect in thread
