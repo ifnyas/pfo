@@ -17,10 +17,13 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -111,6 +114,28 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
     String statusText;
     int status;
     int width;
+    LocationManager locationManager;
+    // update location
+    LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(android.location.Location location) {
+            lat = Double.toString(location.getLatitude());
+            lng = Double.toString(location.getLongitude());
+            showResult();
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+        }
+    };
 
     // onCreate
     @Override
@@ -126,8 +151,8 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         // init values
         path = getApplicationInfo().dataDir + "/.rec";
         username = "pnmuser0"; // TODO: get value from previous activity
-        lat = "6.205177"; // TODO: get value from previous activity
-        lng = "106.8192758"; // TODO: get value from previous activity
+        lat = "0.0";
+        lng = "0.0";
         auth = "WangunBearerToken 1772170802";
         license = "a0N2w0nUkUFcX3PJbjnYS3WJfcubryh8yva/BMnihBEXYa9oYEEo7xFgZ+zWif+cRvrG7c0BdN8BCAllZy+i5hUkjwmrrN4ryB1ZP+ijlNzwD2KItgTzdmepdda8kMoHTPa+8buMJM2X+UkuEhxxCLGgQ+npeqr1eX477RsOYAk=";
         from = getIntent().getStringExtra("from");
@@ -160,25 +185,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         initFun();
     }
 
-    // TODO: initFun() bookmark
-    private void initFun() {
-        // Check for the permission before accessing the camera
-        checkPermit();
-
-        // init all buttons function
-        initBtn();
-
-        // create .nomedia
-        File dir = new File(path);
-        dir.mkdirs();
-        String fileName = ".nomedia";
-        File file = new File(dir, fileName);
-        try {
-            file.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void showNoFaceDialog() {
         // show dialog
@@ -300,6 +306,72 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
                         Manifest.permission.WRITE_EXTERNAL_STORAGE
                 }, 0);
                 recreate();
+            }
+        }
+    }
+
+    // TODO: initFun() bookmark
+    private void initFun() {
+        // Check for the permissions
+        checkPermit();
+
+        // init all buttons function
+        initBtn();
+
+        // create .nomedia
+        File dir = new File(path);
+        dir.mkdirs();
+        String fileName = ".nomedia";
+        File file = new File(dir, fileName);
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // request location after successfully scan face
+    private void reqLoc() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        boolean gpsEnabled = false;
+        boolean networkEnabled = false;
+
+        // check if gps enabled
+        try {
+            gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch (SecurityException ex) {
+        }
+
+        // check if network enabled
+        try {
+            networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (SecurityException ex) {
+        }
+
+        if (!gpsEnabled && !networkEnabled) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(FaceActivity.this);
+            builder.setMessage("GPS atau internet belum aktif. Aktifkan?")
+                    .setPositiveButton("Pengaturan", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                            finish();
+                        }
+                    })
+                    .setNegativeButton("Batal", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    })
+                    .create()
+                    .show();
+
+        } else {
+            try {
+                locationManager.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER,
+                        0L, 0f, locationListener
+                );
+            } catch (SecurityException ex) {
             }
         }
     }
@@ -662,8 +734,8 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         }
         confidence = Float.toString(similarity[0]);
 
-        // show result
-        showResult();
+        // request loc
+        reqLoc();
 
         // debug
         Log.d("FA", "threshold: " + threshold[0] + " " + "similarity: " + similarity[0]);
@@ -690,9 +762,11 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         String msg = "username: " + username + "\nStatus: " + statusText + "\nLat, Lng: " + lat +
                 ", " + lng + "\nConfidence (debug): " + confidence;
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-        Log.d("FaceActivity", path);
 
         postResult();
+
+        // debug
+        Log.d("FaceActivity", path);
     }
 
     /**
