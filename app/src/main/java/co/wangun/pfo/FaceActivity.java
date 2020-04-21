@@ -74,34 +74,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
     long start, end;
     int counter = 0;
     double fps;
-    // Number of Cameras in device.
-    private int numberOfCameras;
-    private Camera mCamera;
-    private int cameraId = 1;
-    // Let's keep track of the display rotation and orientation also:
-    private int mDisplayRotation;
-    private int mDisplayOrientation;
-    private int previewWidth;
-    private int previewHeight;
-    // The surface view for the camera data
-    private SurfaceView mView;
-    // Draw rectangles and other fancy stuff:
-    private FaceOverlayView mFaceView;
-    private boolean isThreadWorking = false;
-    private Handler handler;
-    private FaceDetectThread detectThread = null;
-    private int prevSettingWidth;
-    private int prevSettingHeight;
-    private android.media.FaceDetector fdet;
-    private byte[] grayBuff;
-    private int bufflen;
-    private int[] rgbs;
-    private FaceModel[] faces;
-    private FaceModel[] faces_previous;
-    private int Id = 0;
-    private String BUNDLE_CAMERA_ID = "camera";
-    private HashMap<Integer, Integer> facesCount = new HashMap<>();
-
     // TODO: nothing to do, only a bookmark
     String auth;
     String license;
@@ -136,6 +108,33 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         public void onProviderDisabled(String provider) {
         }
     };
+    // Number of Cameras in device.
+    private int numberOfCameras;
+    private Camera mCamera;
+    private int cameraId = 1;
+    // Let's keep track of the display rotation and orientation also:
+    private int mDisplayRotation;
+    private int mDisplayOrientation;
+    private int previewWidth;
+    private int previewHeight;
+    // The surface view for the camera data
+    private SurfaceView mView;
+    // Draw rectangles and other fancy stuff:
+    private FaceOverlayView mFaceView;
+    private boolean isThreadWorking = false;
+    private Handler handler;
+    private FaceDetectThread detectThread = null;
+    private int prevSettingWidth;
+    private int prevSettingHeight;
+    private android.media.FaceDetector fdet;
+    private byte[] grayBuff;
+    private int bufflen;
+    private int[] rgbs;
+    private FaceModel[] faces;
+    private FaceModel[] faces_previous;
+    private int Id = 0;
+    private String BUNDLE_CAMERA_ID = "camera";
+    private HashMap<Integer, Integer> facesCount = new HashMap<>();
 
     // onCreate
     @Override
@@ -608,12 +607,17 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         }
     }
 
+    /**
+     * Show message when device not supported
+     */
     @Override
     public void onError(int error, Camera camera) {
-        Toast.makeText(this,
-                "Maaf, device Anda tidak memenuhi syarat",
-                Toast.LENGTH_LONG).show();
-        finish();
+        if (!from.equals("Daftar")) {
+            Toast.makeText(this,
+                    "Maaf, device Anda tidak memenuhi syarat",
+                    Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     /**
@@ -716,7 +720,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
     /**
      * Matching faces
      */
-
     //TODO: Matching Faces bookmark
     private void matchingFaces() {
 
@@ -797,18 +800,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         Log.d("FaceActivity", path);
     }
 
-    @Override
-    public void onBackPressed() {
-        if (from.equals("Daftar")) {
-            Intent intent = new Intent(FaceActivity.this, FaceActivity.class);
-            startActivity(intent);
-            finish();
-        } else {
-            finish();
-            android.os.Process.killProcess(android.os.Process.myPid());
-        }
-    }
-
     /**
      * Register face
      */
@@ -851,6 +842,17 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
                 });
     }
 
+    @Override
+    public void onBackPressed() {
+        if (from.equals("Daftar")) {
+            Intent intent = new Intent(FaceActivity.this, FaceActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
+            finish();
+            android.os.Process.killProcess(android.os.Process.myPid());
+        }
+    }
 
     /**
      * Do face detect in thread
