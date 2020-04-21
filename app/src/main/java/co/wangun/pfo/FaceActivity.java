@@ -183,8 +183,20 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
 
         // init all functions
         initFun();
-    }
 
+        // disable if cam btn recently clicked
+        ImageButton camBtn = findViewById(R.id.camBtn);
+        camBtn.setAlpha(0.3f);
+        camBtn.setClickable(false);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ImageButton camBtn = findViewById(R.id.camBtn);
+                camBtn.setAlpha(1f);
+                camBtn.setClickable(true);
+            }
+        }, 4000);
+    }
 
     private void showNoFaceDialog() {
         // show dialog
@@ -239,9 +251,15 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                finish();
+                onBackPressed();
             }
         });
+
+        if (from.equals("Daftar")) {
+            delBtn.setVisibility(View.GONE);
+        } else {
+            delBtn.setVisibility(View.VISIBLE);
+        }
 
         delBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -254,13 +272,19 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
             }
         });
 
+        if (from.equals("Daftar")) {
+            modBtn.setVisibility(View.GONE);
+        } else {
+            modBtn.setVisibility(View.VISIBLE);
+        }
+
         modBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
+                finish();
                 Intent intent = new Intent(FaceActivity.this, FaceActivity.class);
                 intent.putExtra("from", "Daftar");
                 startActivity(intent);
-                finish();
             }
         });
 
@@ -275,9 +299,14 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
                             .setNeutralButton("OK", null)
                             .create()
                             .show();
+                } else {
+                    if (cameraId == 0) {
+                        cameraId = 1;
+                    } else {
+                        cameraId = 0;
+                    }
+                    recreate();
                 }
-                cameraId = (cameraId + 1) % numberOfCameras;
-                recreate();
             }
         });
     }
@@ -501,9 +530,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         previewWidth = previewSize.width;
         previewHeight = previewSize.height;
 
-        Log.e(TAG, "previewWidth" + previewWidth);
-        Log.e(TAG, "previewHeight" + previewHeight);
-
         /**
          * Calculate size to scale full frame bitmap to smaller bitmap
          * Detect face in scaled bitmap have high performance than full bitmap.
@@ -580,12 +606,14 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
                 e.printStackTrace();
             }
         }
-
     }
 
     @Override
     public void onError(int error, Camera camera) {
-        Log.e(TAG, "Encountered an unexpected camera error: " + error);
+        Toast.makeText(this,
+                "Maaf, device Anda tidak memenuhi syarat",
+                Toast.LENGTH_LONG).show();
+        finish();
     }
 
     /**
@@ -769,6 +797,18 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
         Log.d("FaceActivity", path);
     }
 
+    @Override
+    public void onBackPressed() {
+        if (from.equals("Daftar")) {
+            Intent intent = new Intent(FaceActivity.this, FaceActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
+            finish();
+            android.os.Process.killProcess(android.os.Process.myPid());
+        }
+    }
+
     /**
      * Register face
      */
@@ -794,7 +834,11 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
                             // get results
                             try {
                                 JSONObject json = new JSONObject(response.body().string());
-                                // dance, dance
+
+                                // TODO: Start Next Activity and finish FaceActivity
+                                // startActivity(intent);
+                                // finish();
+
                             } catch (JSONException | IOException e) {
                                 e.printStackTrace();
                             }
@@ -955,8 +999,6 @@ public final class FaceActivity extends AppCompatActivity implements SurfaceHold
                                     handler.post(new Runnable() {
 
                                         public void run() {
-
-
                                             Bitmap resizedBitmap = Bitmap.createScaledBitmap(
                                                     faceCroped, width, width, false);
                                             FaceUtils.saveImage(resizedBitmap, from, path);
@@ -1116,6 +1158,7 @@ class FaceOverlayView extends View {
             canvas.restore();
         }
     }
+
 
     public void setPreviewWidth(int previewWidth) {
         this.previewWidth = previewWidth;

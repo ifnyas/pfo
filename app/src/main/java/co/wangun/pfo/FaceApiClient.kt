@@ -10,7 +10,6 @@ object FaceApiClient {
     @JvmStatic
     val client: Retrofit
         get() {
-
             val interceptor = HttpLoggingInterceptor()
             interceptor.level = HttpLoggingInterceptor.Level.BODY
 
